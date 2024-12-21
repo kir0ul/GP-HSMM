@@ -17,12 +17,12 @@ from cymath import logsumexp, calc_forward_probability
 
 class GPSegmentation():
     # parameters
-    MAX_LEN = 20
-    MIN_LEN = 5
-    AVE_LEN = 10
-    SKIP_LEN = 1
+    # MAX_LEN = 20
+    # MIN_LEN = 5
+    # AVE_LEN = 10
+    # SKIP_LEN = 1
 
-    def __init__(self, dim, nclass):
+    def __init__(self, dim, nclass, MAX_LEN=20, MIN_LEN=5, AVE_LEN=10, SKIP_LEN=1):
         self.dim = dim
         self.numclass = nclass
         self.segmlen = 3
@@ -34,6 +34,10 @@ class GPSegmentation():
         self.trans_prob_bos = np.ones( nclass )
         self.trans_prob_eos = np.ones( nclass )
         self.is_initialized = False
+        self.MAX_LEN = MAX_LEN
+        self.MIN_LEN = MIN_LEN
+        self.AVE_LEN = AVE_LEN
+        self.SKIP_LEN = SKIP_LEN
 
         self.prior_table = [ i*math.log(self.AVE_LEN) -self.AVE_LEN - sum(np.log(np.arange(1,i+1))) for i in range(1,self.MAX_LEN+1) ]
 
@@ -48,6 +52,7 @@ class GPSegmentation():
             self.data.append( y )
 
             # ランダムに切る
+            # Cut randomly
             i = 0
             while i<len(y):
                 length = random.randint(self.MIN_LEN, self.MAX_LEN)
@@ -62,6 +67,7 @@ class GPSegmentation():
             self.segments.append( segm )
 
             # ランダムに割り振る
+            # Randomly allocated
             for i,s in enumerate(segm):
                 c = random.randint(0,self.numclass-1)
                 self.segmclass[(n,i)] = c
@@ -75,14 +81,14 @@ class GPSegmentation():
     def load_model( self, basename ):
         # GP読み込み
         for c in range(self.numclass):
-            filename = basename + "class%03d.npy" % c
+            filename = basename / ("class%03d.npy" % c)
             self.segm_in_class[c] = np.load( filename, allow_pickle=True)
             self.update_gp( c )
 
         # 遷移確率更新
-        self.trans_prob = np.load( basename+"trans.npy", allow_pickle=True )
-        self.trans_prob_bos = np.load( basename+"trans_bos.npy", allow_pickle=True )
-        self.trans_prob_eos = np.load( basename+"trans_eos.npy", allow_pickle=True )
+        self.trans_prob = np.load( basename / "trans.npy", allow_pickle=True )
+        self.trans_prob_bos = np.load( basename / "trans_bos.npy", allow_pickle=True )
+        self.trans_prob_eos = np.load( basename / "trans_eos.npy", allow_pickle=True )
 
 
     def update_gp(self, c ):
@@ -142,10 +148,11 @@ class GPSegmentation():
                 classes += [ c for j in range(len(s)) ]
                 cut_points += [0] * len(s)
                 cut_points[-1] = 1
-            np.savetxt( basename+"segm%03d.txt" % n, np.vstack([classes,cut_points]).T, fmt=str("%d") )
+            np.savetxt( basename / ("segm%03d.txt" % n), np.vstack([classes,cut_points]).T, fmt=str("%d") )
 
 
         # 各クラスに分類されたデータを保存
+        # Save data classified into each class
         for c in range(len(self.gps)):
             for d in range(self.dim):
                 plt.clf()
@@ -155,15 +162,15 @@ class GPSegmentation():
                     else:
                         plt.plot( range(len(data[:,d])), data[:,d], "o-" )
                     plt.ylim( -1, 1 )
-                plt.savefig( basename+"class%03d_dim%03d.png" % (c, d) )
+                plt.savefig( basename / ("class%03d_dim%03d.png" % (c, d)) )
 
         # テキストでも保存
-        np.save( basename + "trans.npy" , self.trans_prob  )
-        np.save( basename + "trans_bos.npy" , self.trans_prob_bos )
-        np.save( basename + "trans_eos.npy" , self.trans_prob_eos )
+        np.save( basename / "trans.npy" , self.trans_prob  )
+        np.save( basename / "trans_bos.npy" , self.trans_prob_bos )
+        np.save( basename / "trans_eos.npy" , self.trans_prob_eos )
 
         for c in range(self.numclass):
-            np.save( basename+"class%03d.npy" % c, np.array(self.segm_in_class[c], dtype=object) )
+            np.save( basename / ("class%03d.npy" % c), np.array(self.segm_in_class[c], dtype=object) )
 
     def calc_vitervi_path(self, d ):
         T = len(d)
@@ -451,9 +458,9 @@ class GPSegmentation():
             segm = self.segments[n]
 
             for i, s in enumerate(segm):
-                c = self.segmclass[(n,i)]
+                c = self.segmclass[(n,i)]
                 self.segmclass.pop( (n,i) )
-
+
                 if learning_phase:
                     # パラメータ更新
                     self.remove_ndarray( self.segm_in_class[c], s )
