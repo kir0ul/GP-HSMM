@@ -8,7 +8,7 @@ import numpy as np
 
 # DIM = 2
 # NCLASS = 5
-DIM = 2
+# DIM = 2
 NCLASS = 2
 
 # MAX_LEN=20
@@ -41,8 +41,16 @@ data_path = Path(".") / "data" / "LASADataset"
 # files =  [ "testdata2d_%03d.txt" % j for j in range(4) ]
 files =  [ data_path / f"BendedLine_positions_{idx}.txt" for idx in range(7) ]
 # files =  [ data_path / f"transform_positions_{idx}.txt" for idx in range(1) ]
+data_dimensions = None
 for fname in files:
-    print(fname)
+    print(fname.absolute())
+    data = np.loadtxt(fname)
+    if data_dimensions is None:
+        data_dimensions = data.shape
+    if data.shape != data_dimensions:
+        raise ValueError("All the data files don't have the same dimensions")
+DIM = data.shape[1]
+print(f"DIM = {DIM}")
 
 learn_path = data_path / "learn"
 recog_path = data_path / "recog"
