@@ -161,8 +161,9 @@ class GPSegmentation():
                         plt.plot( range(len(data)), data, "o-" )
                     else:
                         plt.plot( range(len(data[:,d])), data[:,d], "o-" )
-                    plt.ylim( -1, 1 )
+                    # plt.ylim( -1, 1 )
                 plt.savefig( basename / ("class%03d_dim%03d.png" % (c, d)) )
+                print("Saved: " + str(basename / ("class%03d_dim%03d.png" % (c, d))))
 
         # テキストでも保存
         np.save( basename / "trans.npy" , self.trans_prob  )

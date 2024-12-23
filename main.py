@@ -5,6 +5,7 @@ from GPSegmentation import GPSegmentation
 import time
 from pathlib import Path
 import numpy as np
+import shutil
 
 # DIM = 2
 # NCLASS = 5
@@ -54,6 +55,8 @@ print(f"DIM = {DIM}")
 
 learn_path = data_path / "learn"
 recog_path = data_path / "recog"
+shutil.rmtree(learn_path)
+shutil.rmtree(recog_path)
 
 def learn( savedir ):
     # gpsegm = GPSegmentation(dim=2, nclass=5)
@@ -72,7 +75,7 @@ def learn( savedir ):
 
     start = time.time()
     for it in range(5):
-        print( "-----", it, "-----" )
+        print(f"----- Iteration: {it} -----" )
         gpsegm.learn()
         gpsegm.save_model( savedir )
         print( "lik =", gpsegm.calc_lik() )
