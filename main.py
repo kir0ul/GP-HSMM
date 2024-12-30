@@ -30,9 +30,10 @@ def conv_time2ptsnb(time_min, time_max, freq):
     return max_len, min_len, avg_len, skip_len
 
 MAX_LEN, MIN_LEN, AVE_LEN, SKIP_LEN = conv_time2ptsnb(
-    time_min=1,
-    time_max=3,
-    freq=17
+    time_min=3,
+    time_max=7,
+    # freq=17
+    freq=16
 )
 
 # data_path = Path(".")
@@ -40,8 +41,9 @@ MAX_LEN, MIN_LEN, AVE_LEN, SKIP_LEN = conv_time2ptsnb(
 data_path = Path(".") / "data" / "LASADataset"
 
 # files =  [ "testdata2d_%03d.txt" % j for j in range(4) ]
-files =  [ data_path / f"BendedLine_positions_{idx}.txt" for idx in range(7) ]
-# files =  [ data_path / f"transform_positions_{idx}.txt" for idx in range(1) ]
+# files =  [ data_path / f"BendedLine_positions_{idx}.txt" for idx in range(7) ]
+files =  [ data_path / f"BendedLine_positions_concat_{idx}.txt" for idx in range(1, 3) ]
+# files =  [ data_path / "BendedLine_positions_concat.txt" ]
 data_dimensions = None
 for fname in files:
     print(fname.absolute())
@@ -55,8 +57,10 @@ print(f"DIM = {DIM}")
 
 learn_path = data_path / "learn"
 recog_path = data_path / "recog"
-shutil.rmtree(learn_path)
-shutil.rmtree(recog_path)
+if learn_path.exists():
+    shutil.rmtree(learn_path)
+if recog_path.exists():
+    shutil.rmtree(recog_path)
 
 def learn( savedir ):
     # gpsegm = GPSegmentation(dim=2, nclass=5)
