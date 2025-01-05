@@ -42,6 +42,7 @@ class GPSegmentation():
         self.prior_table = [ i*math.log(self.AVE_LEN) -self.AVE_LEN - sum(np.log(np.arange(1,i+1))) for i in range(1,self.MAX_LEN+1) ]
 
     def load_data(self, filenames, classfile=None ):
+        """Initialize Blocked Gibbs Sampler."""
         self.data = []
         self.segments = []
         self.is_initialized = False
@@ -73,6 +74,7 @@ class GPSegmentation():
                 self.segmclass[(n,i)] = c
 
         # 遷移確率更新
+        # Transition probability update
         self.calc_trans_prob()
 
 
@@ -429,12 +431,14 @@ class GPSegmentation():
     def learn(self):
         if self.is_initialized==False:
             # GPの学習
+            # GP Learning
             for n in range(len(self.segments)):
                 for i, s in enumerate(self.segments[n]):
                     c = self.segmclass[(n,i)]
                     self.segm_in_class[c].append( s )
 
             # 各クラス毎に学習
+            # Learning for each class
             for c in range(self.numclass):
                 self.update_gp( c )
 
@@ -448,31 +452,36 @@ class GPSegmentation():
 
         for n, d in enumerate(self.data):
             # viterviで解く
+            # Solve with Viterbi
             segms, classes = self.calc_vitervi_path( d )
             self.segments[n] = segms
             for i, (s, c) in enumerate(zip( segms, classes )):
                 self.segmclass[(n,i)] = c
 
     def update(self, learning_phase=True ):
+        """Main method of the class."""
 
         for n in range(len(self.segments)):
             d = self.data[n]
             segm = self.segments[n]
 
             for i, s in enumerate(segm):
-                c = self.segmclass[(n,i)]
+                c = self.segmclass[(n,i)]
                 self.segmclass.pop( (n,i) )
-
+
                 if learning_phase:
                     # パラメータ更新
+                    # Parameter Update
                     self.remove_ndarray( self.segm_in_class[c], s )
 
             if learning_phase:
                 # GP更新
+                # GP Update
                 for c in range(self.numclass):
                     self.update_gp( c )
 
                 # 遷移確率更新
+                # Update transition probabilities
                 self.calc_trans_prob()
 
             start = time.time()
@@ -496,15 +505,18 @@ class GPSegmentation():
                 self.segmclass[(n,i)] = c
 
                 # パラメータ更新
+                # Update parameters
                 if learning_phase:
                     self.segm_in_class[c].append(s)
 
             if learning_phase:
                 # GP更新
+                # GP Update
                 for c in range(self.numclass):
                     self.update_gp( c )
 
                 # 遷移確率更新
+                # Update transition probabilities
                 self.calc_trans_prob()
             print( "parameter update...", time.time()-start, "sec" )
 
