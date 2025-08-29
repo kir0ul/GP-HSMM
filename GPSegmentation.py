@@ -191,14 +191,15 @@ class GPSegmentation:
     def calc_vitervi_path(self, d):
         T = len(d)
         log_a = np.zeros((len(d), self.MAX_LEN, self.numclass)) - 99999999999999
-        valid = np.zeros(
-            (len(d), self.MAX_LEN, self.numclass)
-        )  # 計算された有効な値可どうか．計算されていない場所の確率を0にするため．
-        z = np.ones(T)  # 正規化定数
+        # 計算された有効な値可どうか．計算されていない場所の確率を0にするため．
+        # Whether the calculated value is valid or not. To make the probability of uncalculated locations 0.
+        valid = np.zeros((len(d), self.MAX_LEN, self.numclass))
+        z = np.ones(T)  # 正規化定数 normalization constant
         path_kc = -np.ones((len(d), self.MAX_LEN, self.numclass, 2), dtype=np.int32)
         emission_prob_all = self.calc_emission_logprob_all(d)
 
         # 前向き確率計算
+        # Forward probability calculation
         for t in range(T):
             for k in range(self.MIN_LEN, self.MAX_LEN, self.SKIP_LEN):
                 if t - k < 0:
@@ -233,7 +234,8 @@ class GPSegmentation:
                         # First Word
                         foward_prob = out_prob + math.log(self.trans_prob_bos[c])
 
-                        path_kc[t, k, c, 0] = t + 1
+                        # path_kc[t, k, c, 0] = t + 1
+                        path_kc[t, k, c, 0] = -1
                         path_kc[t, k, c, 1] = -1
 
                     if t == T - 1:
@@ -266,6 +268,8 @@ class GPSegmentation:
 
         while True:
             kk, cc = path_kc[t, k, c]
+            if kk < 0 or cc < 0:
+                break  # reached BOS
 
             t = t - k - 1
             k = kk
@@ -481,7 +485,7 @@ class GPSegmentation:
         # self.update(False)
         self.segmclass.clear()
 
-        for n, d in enumerate(self.data):
+        for n, d in enumerate(tqdm(self.data)):
             # viterviで解く
             # Solve with Viterbi
             segms, classes = self.calc_vitervi_path(d)
@@ -492,7 +496,7 @@ class GPSegmentation:
     def update(self, learning_phase=True):
         """Main method of the class."""
 
-        for n in tqdm(range(len(self.segments))):
+        for n in range(len(self.segments)):
             d = self.data[n]
             segm = self.segments[n]
 
