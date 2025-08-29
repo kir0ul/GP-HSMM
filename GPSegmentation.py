@@ -166,15 +166,18 @@ class GPSegmentation:
         # Save data classified into each class
         for c in range(len(self.gps)):
             for d in range(self.dim):
-                plt.clf()
-                for data in self.segm_in_class[c]:
-                    if self.dim == 1:
-                        plt.plot(range(len(data)), data, "o-")
-                    else:
-                        plt.plot(range(len(data[:, d])), data[:, d], "o-")
-                    # plt.ylim( -1, 1 )
-                plt.title(f"Class {c} - Dimension {d}")
-                plt.savefig(basename / ("class%03d_dim%03d.png" % (c, d)))
+                with plt.style.context("ggplot_perso.mplstyle"):
+                    plt.clf()
+                    for data in self.segm_in_class[c]:
+                        if self.dim == 1:
+                            plt.plot(range(len(data)), data, "o-")
+                        else:
+                            plt.plot(range(len(data[:, d])), data[:, d], "o-")
+                        # plt.ylim( -1, 1 )
+                    plt.title(f"Class {c} - Dimension {d}")
+                    plt.xlabel("Index")
+                    plt.ylabel("Position")
+                    plt.savefig(basename / ("class%03d_dim%03d.png" % (c, d)))
                 print("Saved: " + str(basename / ("class%03d_dim%03d.png" % (c, d))))
 
         # テキストでも保存
