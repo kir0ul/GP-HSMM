@@ -10,7 +10,7 @@ import shutil
 # DIM = 2
 # NCLASS = 5
 # DIM = 2
-NCLASS = 2
+NCLASS = 5
 
 # MAX_LEN=20
 # MIN_LEN=5
@@ -30,19 +30,21 @@ def conv_time2ptsnb(time_min, time_max, freq):
     return max_len, min_len, avg_len, skip_len
 
 MAX_LEN, MIN_LEN, AVE_LEN, SKIP_LEN = conv_time2ptsnb(
-    time_min=3,
-    time_max=7,
-    # freq=17
-    freq=16
+    time_min=60,
+    time_max=120,
+    freq=45
 )
 
 # data_path = Path(".")
 # data_path = Path(".") / "data" / "fetch_table_demos"
-data_path = Path(".") / "data" / "LASADataset"
+# data_path = Path(".") / "data" / "LASADataset"
+data_path = Path(".") / "data" / "PFCS" / "table task" / "export"
 
 # files =  [ "testdata2d_%03d.txt" % j for j in range(4) ]
 # files =  [ data_path / f"BendedLine_positions_{idx}.txt" for idx in range(7) ]
-files =  [ data_path / f"BendedLine_positions_concat_{idx}.txt" for idx in range(1, 3) ]
+# files =  [ data_path / f"BendedLine_positions_concat_{idx}.txt" for idx in range(1, 3) ]
+files = list(data_path.glob("fetch*.txt"))
+
 # files =  [ data_path / "BendedLine_positions_concat.txt" ]
 data_dimensions = None
 for fname in files:
@@ -78,8 +80,9 @@ def learn( savedir ):
     gpsegm.load_data( files )
 
     start = time.time()
-    for it in range(5):
-        print(f"----- Iteration: {it} -----" )
+    it_num = 5
+    for it in range(it_num):
+        print(f"----- Iteration: {it}/{it_num} -----" )
         gpsegm.learn()
         gpsegm.save_model( savedir )
         print( "lik =", gpsegm.calc_lik() )

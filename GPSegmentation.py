@@ -13,6 +13,7 @@ import os
 import pyximport
 pyximport.install(setup_args={'include_dirs':[np.get_include()]}, inplace=True)
 from cymath import logsumexp, calc_forward_probability
+from tqdm import tqdm
 
 
 class GPSegmentation():
@@ -119,6 +120,7 @@ class GPSegmentation():
     def calc_emission_logprob_all(self, d):
         T = len(d)
         # 出力確率を計算
+        # Calculate output probability
         emission_prob_all = np.zeros( ( self.numclass, self.MAX_LEN, len(d)) )
         for c in range(self.numclass):
             params = self.gps[c].predict( range(self.MAX_LEN) )
@@ -129,6 +131,7 @@ class GPSegmentation():
                     emission_prob_all[c, k, 0:T-k] += -math.log(math.sqrt( 2*math.pi*sig**2)) - (d[k:,dim]-mu)**2 / (2*sig**2)
 
         # 累積確率にする
+        # Cumulative probability
         for k in range(1, self.MAX_LEN):
             emission_prob_all[:, k, :] += emission_prob_all[:, k-1, :]
 
@@ -164,7 +167,7 @@ class GPSegmentation():
                     else:
                         plt.plot( range(len(data[:,d])), data[:,d], "o-" )
                     # plt.ylim( -1, 1 )
-                    plt.title(f"Class {c} - Dimension {d}")
+                plt.title(f"Class {c} - Dimension {d}")
                 plt.savefig( basename / ("class%03d_dim%03d.png" % (c, d)) )
                 print("Saved: " + str(basename / ("class%03d_dim%03d.png" % (c, d))))
 
@@ -271,7 +274,9 @@ class GPSegmentation():
 
     def forward_filtering(self, d ):
         #### cythonで処理 #######
+        #### Processing with Cython #######
         # 全時刻の出力確率をあらかじめ計算
+        # Calculate the output probability for all times in advance
         emission_prob_all = self.calc_emission_logprob_all( d )
         forward_prob = calc_forward_probability( emission_prob_all, self.trans_prob, self.trans_prob_bos, self.trans_prob_eos, len(d), self.MIN_LEN, self.SKIP_LEN, self.MAX_LEN, self.numclass )
         return forward_prob
@@ -461,7 +466,7 @@ class GPSegmentation():
     def update(self, learning_phase=True ):
         """Main method of the class."""
 
-        for n in range(len(self.segments)):
+        for n in tqdm(range(len(self.segments))):
             d = self.data[n]
             segm = self.segments[n]
 
