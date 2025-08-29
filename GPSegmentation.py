@@ -211,6 +211,7 @@ class GPSegmentation:
                     foward_prob = 0.0
 
                     # 遷移確率
+                    # Transition Probability
                     tt = t - k - 1
                     if tt >= 0:
                         prev_prob = (
@@ -218,6 +219,7 @@ class GPSegmentation:
                         )
 
                         # 最大値を取る
+                        # Take the maximum value
                         idx = np.argmax(prev_prob.reshape(self.MAX_LEN * self.numclass))
                         kk = int(idx / self.numclass)
                         cc = idx % self.numclass
@@ -228,6 +230,7 @@ class GPSegmentation:
                         foward_prob = prev_prob[kk, cc] + out_prob
                     else:
                         # 最初の単語
+                        # First Word
                         foward_prob = out_prob + math.log(self.trans_prob_bos[c])
 
                         path_kc[t, k, c, 0] = t + 1
@@ -235,6 +238,7 @@ class GPSegmentation:
 
                     if t == T - 1:
                         # 最後の単語
+                        # Last Word
                         foward_prob += math.log(self.trans_prob_eos[c])
 
                     log_a[t, k, c] = foward_prob
@@ -243,6 +247,7 @@ class GPSegmentation:
                         print("a[t=%d,k=%d,c=%d] became NAN!!" % (t, k, c))
                         sys.exit(-1)
             # 正規化
+            # normalization
             if t - self.MIN_LEN >= 0:
                 z[t] = logsumexp(log_a[t, :, :])
                 log_a[t, :, :] -= z[t]
@@ -250,6 +255,7 @@ class GPSegmentation:
                 # a[t,:,:] -= z[t]
 
         # バックトラック
+        # Backtrack
         t = T - 1
         idx = np.argmax(log_a[t].reshape(self.MAX_LEN * self.numclass))
         k = int(idx / self.numclass)
@@ -270,9 +276,11 @@ class GPSegmentation:
 
             if t - k - 1 <= 0:
                 # 先頭
+                # head
                 s = d[0 : t + 1]
             else:
                 # 先頭以外
+                # Other than the first
                 s = d[t - k : t + 1]
 
             segm.insert(0, s)

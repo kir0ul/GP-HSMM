@@ -12,10 +12,10 @@ import shutil
 # DIM = 2
 NCLASS = 5
 
-# MAX_LEN=20
-# MIN_LEN=5
-# AVE_LEN=10
-# SKIP_LEN=1
+MAX_LEN = 200
+MIN_LEN = 50
+AVE_LEN = 100
+SKIP_LEN = 30
 
 
 def conv_time2ptsnb(time_min, time_max, freq):
@@ -31,9 +31,9 @@ def conv_time2ptsnb(time_min, time_max, freq):
     return max_len, min_len, avg_len, skip_len
 
 
-MAX_LEN, MIN_LEN, AVE_LEN, SKIP_LEN = conv_time2ptsnb(
-    time_min=60, time_max=120, freq=45
-)
+# MAX_LEN, MIN_LEN, AVE_LEN, SKIP_LEN = conv_time2ptsnb(
+#     time_min=60, time_max=120, freq=45
+# )
 
 # data_path = Path(".")
 # data_path = Path(".") / "data" / "fetch_table_demos"
@@ -52,7 +52,7 @@ for fname in files:
     data = np.loadtxt(fname)
     if data_dimensions is None:
         data_dimensions = data.shape
-    if data.shape != data_dimensions:
+    if data.shape[1] != data_dimensions[1]:
         raise ValueError("All the data files don't have the same dimensions")
 DIM = data.shape[1]
 print(f"DIM = {DIM}")
@@ -68,6 +68,7 @@ if recog_path.exists():
 def learn(savedir):
     # gpsegm = GPSegmentation(dim=2, nclass=5)
     # gpsegm = GPSegmentation(dim=DIM, nclass=NCLASS)
+    print("===== Learning phase =====")
     gpsegm = GPSegmentation(
         dim=DIM,
         nclass=NCLASS,
@@ -83,17 +84,18 @@ def learn(savedir):
     start = time.time()
     it_num = 5
     for it in range(it_num):
-        print(f"----- Iteration: {it}/{it_num} -----")
+        print(f"----- Iteration: {it + 1}/{it_num} -----")
         gpsegm.learn()
         gpsegm.save_model(savedir)
         print("lik =", gpsegm.calc_lik())
-    print(time.time() - start)
+    print(f"Elapsed time: {time.time() - start}")
     return gpsegm.calc_lik()
 
 
 def recog(modeldir, savedir):
     # gpsegm = GPSegmentation(dim=2, nclass=5)
     # gpsegm = GPSegmentation(dim=DIM, nclass=NCLASS)
+    print("==== Recognition phase =====")
     gpsegm = GPSegmentation(
         dim=DIM,
         nclass=NCLASS,
@@ -110,7 +112,7 @@ def recog(modeldir, savedir):
     start = time.time()
     gpsegm.recog()
     print("lik =", gpsegm.calc_lik())
-    print(time.time() - start)
+    print(f"Elapsed time: {time.time() - start}")
     gpsegm.save_model(savedir)
 
 
