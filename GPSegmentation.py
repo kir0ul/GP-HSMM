@@ -15,7 +15,7 @@ import pyximport
 
 pyximport.install(setup_args={"include_dirs": [np.get_include()]}, inplace=True)
 from cymath import logsumexp, calc_forward_probability
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 
 class GPSegmentation:
