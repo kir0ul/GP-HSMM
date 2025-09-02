@@ -57,13 +57,6 @@ for fname in files:
 DIM = data.shape[1]
 print(f"DIM = {DIM}")
 
-learn_path = data_path / "learn"
-recog_path = data_path / "recog"
-if learn_path.exists():
-    shutil.rmtree(learn_path)
-if recog_path.exists():
-    shutil.rmtree(recog_path)
-
 
 def learn(savedir):
     # gpsegm = GPSegmentation(dim=2, nclass=5)
@@ -119,6 +112,14 @@ def recog(modeldir, savedir):
 def main():
     # learn( "learn/" )
     # recog( "learn/" , "recog/" )
+
+    learn_path = data_path / "learn"
+    recog_path = data_path / "recog"
+    if learn_path.exists():
+        shutil.rmtree(learn_path)
+    if recog_path.exists():
+        shutil.rmtree(recog_path)
+
     learn(learn_path)
     recog(learn_path, recog_path)
     return
